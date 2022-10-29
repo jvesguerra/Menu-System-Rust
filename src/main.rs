@@ -15,6 +15,9 @@ Menu System Rust
 - delete_menu_item()
 */
 
+// to fix:
+// make string "item id + item name + food estab" for Menu items ordered
+
 use std::io;
 use std::io::Write; 
 
@@ -146,7 +149,7 @@ fn view_all_customers(customer_list: &Vec<Customer>){
             print!("\nCustomer name: {}",customer.name);
             print!("Menu Items Ordered:");
             for order in customer.orders.iter(){
-                print!("\n {}\n",order.trim()); 
+                print!("\n {}",order.trim()); 
             }
             print!("\nTotal Cost: {}\n",customer.total_cost);
         }
@@ -175,7 +178,7 @@ fn order_menu_item(customer_list: &mut Vec<Customer>, menu_list: &mut Vec<MenuIt
 
         println!("MENU ITEMS AVAILABLE");
         for menu_item in menu_list.iter(){
-            print!("[{}] {} ({}) - {}",menu_item.item_id, menu_item.item_name.trim(),menu_item.food_establishment.trim(),menu_item.item_price);
+            print!("[{}] {} ({}) - {}\n",menu_item.item_id, menu_item.item_name.trim(),menu_item.food_establishment.trim(),menu_item.item_price);
         }
 
         print!("\nEnter menu id to order: ");
@@ -310,18 +313,20 @@ fn edit_menu_item(menu_list: &mut Vec<MenuItem>){
     if x {
         // item price
         print!("Enter new item price: ");
+        io::stdout().flush().unwrap();
         io::stdin().read_line(&mut new_item_price).expect("Error");
         let new_item_price : f64 = new_item_price.trim().parse().expect("error");
 
         // item stock
         print!("Enter new item stock: ");
+        io::stdout().flush().unwrap();
         io::stdin().read_line(&mut new_item_stock).expect("Error");
         let new_item_stock : u32 = new_item_stock.trim().parse().expect("error");
 
         menu_list[edit_item_index - 1].item_price = new_item_price;
         menu_list[edit_item_index - 1].item_stock = new_item_stock;
 
-        println!("Menu Item Successfully Edited!");
+        println!("\nMenu Item Successfully Edited!");
     }else{
         println!("Menu item does not exist!");
     }
