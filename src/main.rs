@@ -203,7 +203,17 @@ fn order_menu_item(customer_list: &mut Vec<Customer>, menu_list: &mut Vec<MenuIt
 
                 println!("Stock: {}",menu_list[customer_order-1].item_stock);
                 if menu_list[customer_order-1].item_stock != 0 {
-                    customer_list[final_index].orders.push(menu_list[customer_order-1].item_name.to_string());
+
+                    // build order string
+                    let mut order_string = String::new();
+                    order_string.push_str(&menu_list[customer_order-1].item_id.to_string().trim());
+                    order_string.push_str(&" - ".to_string().trim());
+                    order_string.push_str(&menu_list[customer_order-1].item_name.to_string().trim());
+                    order_string.push_str(&" - ".to_string().trim());
+                    order_string.push_str(&menu_list[customer_order-1].food_establishment.to_string().trim());
+
+
+                    customer_list[final_index].orders.push(order_string);
 
                     let update_total_cost = customer_list[final_index].total_cost + menu_list[customer_order-1].item_price;
                     let update_total_stock = menu_list[customer_order-1].item_stock - 1;
@@ -220,7 +230,16 @@ fn order_menu_item(customer_list: &mut Vec<Customer>, menu_list: &mut Vec<MenuIt
                 }
             }else{
                 if menu_list[customer_order-1].item_stock != 0 {
-                    order_list.push(menu_list[customer_order-1].item_name.to_string());
+
+                    // build order string
+                    let mut order_string = String::new();
+                    order_string.push_str(&menu_list[customer_order-1].item_id.to_string().trim());
+                    order_string.push_str(&" - ".to_string().trim());
+                    order_string.push_str(&menu_list[customer_order-1].item_name.to_string().trim());
+                    order_string.push_str(&" - ".to_string().trim());
+                    order_string.push_str(&menu_list[customer_order-1].food_establishment.to_string().trim());
+
+                    order_list.push(order_string);
 
                     //create customer
                     let new_customer= create_customer(customer_name,order_list,menu_list[customer_order-1].item_price);
