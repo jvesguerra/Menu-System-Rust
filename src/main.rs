@@ -57,6 +57,16 @@ fn create_customer(name:String,orders:Vec<String>,total_cost: f64) -> Customer{
     }
 }
 
+fn check_customer(customer_list: &mut Vec<Customer>, customer: &String) -> bool{
+    let mut x = false;
+    for data in customer_list.iter(){
+        if customer == &data.name {
+            x = true;
+        }
+    }
+    return x;
+}
+
 fn order_menu_item(customer_list: &mut Vec<Customer>, menu_list: &mut Vec<MenuItem>){
 
     // declarations
@@ -68,7 +78,11 @@ fn order_menu_item(customer_list: &mut Vec<Customer>, menu_list: &mut Vec<MenuIt
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut customer_name).expect("Error");
 
-    // get orders
+    // check if customer already exists
+    let check_customer_exist = check_customer(customer_list,&customer_name);
+
+    //if exists append to current orders
+        // get orders
     println!("MENU ITEMS AVAILABLE");
     for menu_item in menu_list.iter(){
         print!("\n [{}] {} ({}) - {}\n",menu_item.item_id, menu_item.item_name.trim(),menu_item.food_establishment.trim(),menu_item.item_price);
@@ -79,16 +93,34 @@ fn order_menu_item(customer_list: &mut Vec<Customer>, menu_list: &mut Vec<MenuIt
     io::stdin().read_line(&mut customer_order).expect("Error");
     let customer_order : usize = customer_order.trim().parse().expect(" error");
 
-    // for improvement
-    order_list.push("burger".to_string());
+    if check_customer_exist {
+        // find position of customer
+        let mut final_index = 0;
+        for data in customer_list.iter(){
+            if customer_name == data.name {
+                println!("{}", final_index);
+            }else{
+                final_index += 1;
+            }
+        }
+
+        customer_list[final_index].orders.push(menu_list[customer_order-1].item_name.to_string());
+
+        let mut update_total_cost = customer_list[final_index].total_cost + menu_list[customer_order-1].item_price;
+
+        customer_list[final_index].total_cost = update_total_cost;
+
+    }else{
+        order_list.push(menu_list[customer_order-1].item_name.to_string());
+
+        //create customer
+        let new_customer= create_customer(customer_name,order_list,menu_list[customer_order-1].item_price);
+
+        // append new customer to customer list
+        customer_list.push(new_customer);
+    }
 
     println!("Successfully ordered menu item {} {}_{}",menu_list[customer_order-1].item_id, menu_list[customer_order-1].item_name.trim(), menu_list[customer_order-1].food_establishment.trim());
-
-    //create customer
-    let new_customer= create_customer(customer_name,order_list,148.0);
-
-    // append new customer to customer list
-    customer_list.push(new_customer);
 }
 
 fn view_all_customers(customer_list: &Vec<Customer>){
@@ -96,7 +128,7 @@ fn view_all_customers(customer_list: &Vec<Customer>){
         print!("\nCustomer name: {}",customer.name);
         print!("Orders:");
         for order in customer.orders.iter(){
-            print!("\n {}",order); 
+            print!("\n {}",order.trim()); 
         }
         print!("\nTotal Cost: {}\n",customer.total_cost);
     }
