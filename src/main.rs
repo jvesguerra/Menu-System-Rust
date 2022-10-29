@@ -69,69 +69,105 @@ fn check_customer(customer_list: &mut Vec<Customer>, customer: &String) -> bool{
 
 fn order_menu_item(customer_list: &mut Vec<Customer>, menu_list: &mut Vec<MenuItem>){
 
-    // declarations
+    // data declarations
     let mut customer_name = String::new();
     let mut customer_order = String::new();
     let mut order_list: Vec<String> = Vec::new();
 
-    print!("Enter customer name: ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut customer_name).expect("Error");
+    // checks if there are menu items available
+    if menu_list.len() != 0 {
+        print!("Enter customer name: ");
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut customer_name).expect("Error");
 
-    // check if customer already exists
-    let check_customer_exist = check_customer(customer_list,&customer_name);
+        // checks if customer already exists
+        let check_customer_exist = check_customer(customer_list,&customer_name);
 
-    //if exists append to current orders
-        // get orders
-    println!("MENU ITEMS AVAILABLE");
-    for menu_item in menu_list.iter(){
-        print!("\n [{}] {} ({}) - {}\n",menu_item.item_id, menu_item.item_name.trim(),menu_item.food_establishment.trim(),menu_item.item_price);
-    }
-
-    print!("\nEnter menu id to order: ");
-    io::stdout().flush().unwrap();
-    io::stdin().read_line(&mut customer_order).expect("Error");
-    let customer_order : usize = customer_order.trim().parse().expect(" error");
-
-    if check_customer_exist {
-        // find position of customer
-        let mut final_index = 0;
-        for data in customer_list.iter(){
-            if customer_name == data.name {
-                println!("{}", final_index);
-            }else{
-                final_index += 1;
-            }
+        println!("MENU ITEMS AVAILABLE");
+        for menu_item in menu_list.iter(){
+            print!("[{}] {} ({}) - {}",menu_item.item_id, menu_item.item_name.trim(),menu_item.food_establishment.trim(),menu_item.item_price);
         }
 
-        customer_list[final_index].orders.push(menu_list[customer_order-1].item_name.to_string());
+        print!("\nEnter menu id to order: ");
+        io::stdout().flush().unwrap();
+        io::stdin().read_line(&mut customer_order).expect("Error");
+        let customer_order : usize = customer_order.trim().parse().expect(" error");
 
-        let mut update_total_cost = customer_list[final_index].total_cost + menu_list[customer_order-1].item_price;
+        // check if menu item exist
+        let x = check_menu_item(menu_list,customer_order);
 
-        customer_list[final_index].total_cost = update_total_cost;
+        if x {
+            if check_customer_exist {
+                // find position of customer
+                let mut final_index = 0;
+                for data in customer_list.iter(){
+                    if customer_name == data.name {
+                        println!("{}", final_index);
+                    }else{
+                        final_index += 1;
+                    }
+                }
 
+                println!("Stock: {}",menu_list[customer_order-1].item_stock);
+                if menu_list[customer_order-1].item_stock != 0 {
+                    customer_list[final_index].orders.push(menu_list[customer_order-1].item_name.to_string());
+
+                    let update_total_cost = customer_list[final_index].total_cost + menu_list[customer_order-1].item_price;
+                    let update_total_stock = menu_list[customer_order-1].item_stock - 1;
+
+                    // update total cost
+                    customer_list[final_index].total_cost = update_total_cost;
+
+                    //update stock
+                    menu_list[customer_order-1].item_stock = update_total_stock;
+
+                    println!("\nSuccessfully ordered menu item {} {}_{}",menu_list[customer_order-1].item_id, menu_list[customer_order-1].item_name.trim(), menu_list[customer_order-1].food_establishment.trim());
+                }else{
+                    println!("\nMenu item is out of stock!");
+                }
+            }else{
+                if menu_list[customer_order-1].item_stock != 0 {
+                    order_list.push(menu_list[customer_order-1].item_name.to_string());
+
+                    //create customer
+                    let new_customer= create_customer(customer_name,order_list,menu_list[customer_order-1].item_price);
+
+                    // append new customer to customer list
+                    customer_list.push(new_customer);
+
+                    //update stock
+                    let update_total_stock = menu_list[customer_order-1].item_stock - 1;
+                    menu_list[customer_order-1].item_stock = update_total_stock;
+
+                    println!("\nSuccessfully ordered menu item {} {}_{}",menu_list[customer_order-1].item_id, menu_list[customer_order-1].item_name.trim(), menu_list[customer_order-1].food_establishment.trim());
+                }else{
+                    println!("\nMenu item is out of stock!");
+                }
+            }
+        }else{
+            println!("\nMenu ID not found!");
+        }
     }else{
-        order_list.push(menu_list[customer_order-1].item_name.to_string());
-
-        //create customer
-        let new_customer= create_customer(customer_name,order_list,menu_list[customer_order-1].item_price);
-
-        // append new customer to customer list
-        customer_list.push(new_customer);
+       println!("There are no menu items available"); 
     }
 
-    println!("Successfully ordered menu item {} {}_{}",menu_list[customer_order-1].item_id, menu_list[customer_order-1].item_name.trim(), menu_list[customer_order-1].food_establishment.trim());
+    
 }
 
 fn view_all_customers(customer_list: &Vec<Customer>){
-    for customer in customer_list.iter(){
-        print!("\nCustomer name: {}",customer.name);
-        print!("Orders:");
-        for order in customer.orders.iter(){
-            print!("\n {}",order.trim()); 
+    if customer_list.len() != 0 {
+        for customer in customer_list.iter(){
+            print!("\nCustomer name: {}",customer.name);
+            print!("Menu Items Ordered:");
+            for order in customer.orders.iter(){
+                print!("\n {}\n",order.trim()); 
+            }
+            print!("\nTotal Cost: {}\n",customer.total_cost);
         }
-        print!("\nTotal Cost: {}\n",customer.total_cost);
+    }else{
+        println!("There are no customers yet!");
     }
+
 }
 
 fn check_menu_item(menu_list: &mut Vec<MenuItem>, item: usize) -> bool{
@@ -187,6 +223,8 @@ fn edit_menu_item(menu_list: &mut Vec<MenuItem>){
 
         menu_list[edit_item_index - 1].item_price = new_item_price;
         menu_list[edit_item_index - 1].item_stock = new_item_stock;
+
+        println!("Menu Item Successfully Edited!");
     }else{
         println!("Menu item does not exist!");
     }
@@ -249,7 +287,7 @@ fn add_menu_item(menu_list:&mut Vec<MenuItem>){
     let x = check_menu_item_u32(menu_list,new_item_id);
 
     if x {
-        println!("Item id already exists!");
+        println!("\nMenu ID already exists!");
     }else{
         //item name
         print!("Enter item name: ");
@@ -277,16 +315,23 @@ fn add_menu_item(menu_list:&mut Vec<MenuItem>){
         let new_menu_item = create_menu_item(new_item_id,new_item_name,new_food_establishment,new_item_price,new_item_stock);
 
         menu_list.push(new_menu_item);
+
+        println!("\nSuccessfully added menu item!");
     }
 }
 
 
 fn view_all_menu_item(menu_item_list:&Vec<MenuItem>){
-    for menu_item in menu_item_list.iter(){
-        print!("\nItem id: {} \n",menu_item.item_id);
-        print!("Item name: {} \n",menu_item.item_name.trim());
-        print!("Food Establishment: {} \n",menu_item.food_establishment.trim());
-        print!("Item price: {} \n",menu_item.item_price);
-        println!("Item stock: {}",menu_item.item_stock);
+    if menu_item_list.len() == 0{
+        println!("No menu items yet!");
+    }else{
+        for menu_item in menu_item_list.iter(){
+            print!("\nItem id: {} \n",menu_item.item_id);
+            print!("Item name: {} \n",menu_item.item_name.trim());
+            print!("Food Establishment: {} \n",menu_item.food_establishment.trim());
+            print!("Item price: {} \n",menu_item.item_price);
+            println!("Item stock: {}",menu_item.item_stock);
+        }       
     }
+
 }
